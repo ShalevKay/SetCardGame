@@ -1,0 +1,78 @@
+BONUS CHALLENGE FORM
+--------------------
+
+For each bonus challenge you have implemented, please replace the sentence "We are not entitled to this bonus."
+with a short description of:
+
+1. How it was implemented in your code
+2. Where it was used (in which class methods).
+3. How you tested that it is working correctly.
+
+--------------------
+
+1. Fully supporting all configuration fields and avoiding the use of magic numbers
+
+- Implemented by using the variables from the Config class in various places in the code,
+  and by using final static variables in the top of classes to avoid magic numbers.
+- It was used in the classes that we implemented (Dealer, Player and Table).
+  Important variables that were used to avoid magic numbers were in the dealer class
+  (it felt appropriate because there is only one dealer).
+- We tested that it is working correctly by changing the values in the Config class and
+  seeing if things work properly. Also, we manually checked the code to see if there are
+  any magic numbers left.
+
+--------------------
+
+2. Terminating all threads (that you created) gracefully and in reverse order to the order they were created in.
+
+- When the game should be finished, which means the user pressed 'X', or there are no legal sets available no more, the
+  run method in Dealer class exists the game loop, announces the winners and activate the "terminate" method.
+  The terminate method firstly iterate in reverse order on the players array, the reverse order of their creation,
+  and activates the 'terminate' method of the current player, which changes the 'terminate' flag to 'true' and interrupts its
+  thread, thus terminate its thread and stopping its running. After the termination of each player in reverse order,
+  the Dealer terminates itself by changing the 'terminate' to 'true', which terminates its thread and stopping it from running.
+  After that we close all the players' threads by joining their threads with the Dealer thread.
+  Then the Dealer thread joins the main thread and the program is terminated.
+- The 'terminate' method of each player is implemented in the Player class, and was used in the 'terminate' method of Dealer
+  in the Dealer class. The 'terminate' method of dealer was used in the 'run' method of Dealer, after the 'shouldFinish' loop
+  was ended. The method 'closePlayerThreads' was also used at the 'run' method of Dealer, after the 'terminated' method
+  was finished.
+- We tested that it is working correctly, by using the logger. For each thread, the Player thread or the Dealer thread,
+  we created the thread as ThreadLogger, and upon termination we used the 'joinWithLog' method to write their termination
+  in the logger when they join another thread.
+  We tested the game sometimes only with humans, or only AI, or humans with AI, and changed the numbers of players and
+  other config properties, and each time we checked the log file, and saw that the player threads were terminated in
+  reverse to the order they were created in, and only after each player was terminated, the Dealer thread terminated
+  and the program terminated.
+
+--------------------
+
+3. Handling the config.turnTimeoutMillis value as follows:
+config.turnTimeoutMillis < 0: display nothing.
+config.turnTimeoutMillis = 0: display a timer since the last action (reshuffle or set collected).
+Note: in modes without a countdown timer the dealer must ensure there is always at least one legal set on the table.
+
+We are not entitled to this bonus.
+
+--------------------
+
+4. Making sure that the threads do not wake up unless some actual job needs to be done (e.g., a value needs to be
+changed on the display, key input needs to be handled, etc.) and the only threads created by you are:
+1 thread per player + 1 additional thread for non-human players.
+
+- When a player makes a set, the dealer is interrupted from what it was doing (if it is sleeping because of the timer)
+  and the dealer empties its queue of players to check. When if finishes checking a set it interrupts the sleep of the
+  player that made the set and waited for the answer. The dealer is waking up only when a player makes a set or when
+  it needs to decrease the countdown, and the players are waking up only when they can make another set. Also, the dealer
+  creates a thread for each player at the start of the game, and if the player is defined as ai, the player thread creates
+  another ai thread that ends up playing the game.
+- The waking up of the dealer is inside Player.verifySetWithDealer method, and we do it whenever a set is made and only
+  when the dealer is sleeping. The waking up of the player is inside the Dealer.verifyPlayersSets method, and we do it
+  whenever we finish checking a certain set of a player, no matter if the set is correct. The players threads is created
+  at the start of the dealer's run method, and the ai threads are created at the Player.run method if the player is designated
+  as an AI.
+- We tested that it is working correctly, by seeing if any thread gets 'stuck' whenever it should be doing something.
+  For example, we used the computer threads and turned down the turnTimeoutMillis to 0, and saw that the computer threads
+  don't get stuck when making a set very quickly and simultaneously, and the dealer thread doesn't get stuck when it needs
+  to wake up and check a set. Also, to see if the players' threads and the ai threads are created correctly, we checked
+  the log file and observed the correct behavior.
